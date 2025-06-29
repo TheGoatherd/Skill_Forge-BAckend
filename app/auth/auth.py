@@ -24,7 +24,12 @@ async def register(user: UserRegister):
 @router.post("/login")
 async def login(user: UserLogin):
     db_user = await db.users.find_one({"email": user.email})
-    if not db_user or not bcrypt.verify(user.password, db_user["password"]):
+    if not db_user:
+        raise HTTPException(status_code=401, detail="invalid credentials")
+    try:
+        if not bcrypt.verify(user.password, db_user["password"]):
+            raise HTTPException(status_code=401, detail="invalid credentials")
+    except Exception:
         raise HTTPException(status_code=401, detail="invalid credentials")
     token = jwt.encode(
         {"email": user.email},
