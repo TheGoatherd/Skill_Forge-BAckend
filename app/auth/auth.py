@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from passlib.hash import bcrypt
 from jose import jwt
 import os
-from app.schemas.auth import UserRegister, UserLogin
+from app.schemas.user import UserRegister, UserLogin
 from app.database import db
 
 router = APIRouter()
