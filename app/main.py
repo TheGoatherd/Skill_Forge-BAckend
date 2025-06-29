@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel, SecuritySchemeType
 from fastapi.security import HTTPBearer
@@ -10,12 +10,14 @@ import os
 load_dotenv()
 
 from app.routes import auth, dashboard,carrer,resume_pdf # adjust based on your project structure
+from app.dependencies.dependcies import get_current_user
 
 app = FastAPI(title="Career Portal API")
 
+# Apply JWT protection to all routers except auth
 app.include_router(auth.router, prefix="/auth", tags=["authentication"])
-app.include_router(carrer.router,prefix="/carrer",tags=["carrer"])
-app.include_router(resume_pdf.router,prefix="/resume/ats/improve",tags=["resume_latex"])
+app.include_router(carrer.router, prefix="/carrer", tags=["carrer"], dependencies=[Depends(get_current_user)])
+app.include_router(resume_pdf.router, prefix="/resume/ats/improve", tags=["resume_latex"], dependencies=[Depends(get_current_user)])
 
 # Enable CORS
 app.add_middleware(

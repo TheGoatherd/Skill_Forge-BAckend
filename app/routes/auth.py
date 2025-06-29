@@ -17,6 +17,10 @@ ALGORITHM= "HS256"
 
 @router.post("/Register")
 async def register(user:User):
+    # Check if email ends with @email.com
+    if not user.email.endswith("@gmail.com"):
+        raise HTTPException(status_code=400,detail="Email is not vaild")
+
     exsiting_user = await db.users.find_one({"email":user.email})
     if exsiting_user:
         raise HTTPException(status_code=400,detail="Email Already Registered")

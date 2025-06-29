@@ -49,7 +49,12 @@ async def get_career_suggestion(user_input: User_Input):
     for chunk in completion:
         if hasattr(chunk.choices[0].delta, "content") and chunk.choices[0].delta.content:
             suggestion += chunk.choices[0].delta.content
-    return {"suggestion": suggestion}
+    # Filter out any system prompt or system information from the response
+    filtered = "\n".join(
+        line for line in suggestion.splitlines()
+        if not any(word in line.lower() for word in ["system prompt", "system:", "prompt:", "role:", "as a system", "as an ai", "you are a system", "model:"])
+    )
+    return {"suggestion": filtered.strip()}
 
 
 @router.post("/roadmap")
@@ -81,7 +86,12 @@ async def get_roadmap(user_input: RoadMap):
         max_completion_tokens=1024,
         top_p=1,
     )
-    return {"roadmap": completion.choices[0].message.content}
+    result = completion.choices[0].message.content
+    filtered = "\n".join(
+        line for line in result.splitlines()
+        if not any(word in line.lower() for word in ["system prompt", "system:", "prompt:", "role:", "as a system", "as an ai", "you are a system", "model:"])
+    )
+    return {"roadmap": filtered.strip()}
 
 
 @router.post("/resource")
@@ -95,9 +105,9 @@ async def resource_find(user_input: Topic):
                     "You are a resource recommendation engine trained to help learners find high-quality materials.\n\n"
                     f"User query:\n{user_input.topic}\n\n"
                     "Suggest 3 top resources:\n"
-                    "- Prefer YouTube videos\n"
-                    "- Include: title, topic, URL, short description, review/testimonial\n"
-                    "Ensure relevance and beginner-friendliness."
+                    "- Only suggest the names of YouTube playlists or courses, do not provide any URLs.\n"
+                    "- For each resource, include: title, topic, platform (e.g., YouTube, Coursera), a short description, and a review/testimonial.\n"
+                    "Ensure all resources are relevant and beginner-friendly."
                 )
             },
             {
@@ -109,4 +119,11 @@ async def resource_find(user_input: Topic):
         max_completion_tokens=1024,
         top_p=1,
     )
-    return {"resources": completion.choices[0].message.content}
+    # Filter out any system prompt or system information from the response
+    result = completion.choices[0].message.content
+    # Remove lines that look like system prompts or contain 'system', 'prompt', or similar keywords
+    filtered = "\n".join(
+        line for line in result.splitlines()
+        if not any(word in line.lower() for word in ["system prompt", "system:", "prompt:", "role:", "as a system", "as an ai", "you are a system", "model:"])
+    )
+    return {"resources": filtered.strip()}
