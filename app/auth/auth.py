@@ -9,6 +9,8 @@ router = APIRouter()
 SECRET_KEY = os.getenv("SECRET", "secret")
 ALGORITHM = "HS256"
 
+print("auth.py loaded")
+
 @router.post("/register")
 async def register(user: UserRegister):
     print("Registering user:", user.email)
