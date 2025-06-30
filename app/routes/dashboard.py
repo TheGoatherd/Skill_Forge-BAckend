@@ -1,5 +1,5 @@
 from fastapi import APIRouter,Depends
-from app.dependencies.dependcies import get_current_user
+from app.dependencies.dependencies import get_current_user
 
 router = APIRouter()
 @router.get("/dashboard")

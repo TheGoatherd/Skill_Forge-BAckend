@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException,Depends
-from app.dependencies.dependcies import get_db
+from app.dependencies.dependencies import get_db
 from pydantic import BaseModel
 import os
 from jose import jwt

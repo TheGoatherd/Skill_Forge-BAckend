@@ -11,7 +11,7 @@ load_dotenv()
 
 
 from app.routes import auth, dashboard,carrer,resume_pdf # adjust based on your project structure
-from app.dependencies.dependcies import get_current_user
+from app.dependencies.dependencies import get_current_user
 
 app= FastAPI(debug=True, title="Career Portal API")
 
