@@ -1,50 +1,36 @@
-from fastapi import APIRouter, HTTPException, Depends
-from passlib.context import CryptContext
+from fastapi import APIRouter, HTTPException
 from jose import jwt
+from passlib.hash import argon2  
 import os
+
 from app.schemas.user import UserRegister, UserLogin
 from app.database import db
 
-router = APIRouter()
-SECRET_KEY = os.getenv("SECRET", "secret")
-ALGORITHM = "HS256"
+router = APIRouter(prefix="/auth")
+SECRET_KEY = os.getenv("SECRET_KEY", "secret")
+ALGORITHM  = "HS256"
 
-pass_context = CryptContext(schemes=["bcrypt_sha256"],deprecated=["auto"])
-
-print("auth.py loaded")
 
 @router.post("/register")
 async def register(user: UserRegister):
-    print("Registering user:", user.email)
-    hashed_password = pass_context.hash(user.password)
-    try:
-        result = await db.users.insert_one({
-            "name": user.name,
-            "email": user.email,
-            "password": hashed_password,
-        })
-        print("Insert result:", result.inserted_id)
-    except Exception as e:
-        print("DB insert error:", e)
-        raise HTTPException(status_code=500, detail="Database error: " + str(e))
-    return {"message": "User register successfully"}
+    # Check duplicate email
+    if await db.users.find_one({"email": user.email}):
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed_pw = argon2.hash(user.password)
+    await db.users.insert_one({
+        "name":     user.name,
+        "email":    user.email,
+        "password": hashed_pw,
+    })
+    return {"message": "User registered successfully"}
+
 
 @router.post("/login")
 async def login(user: UserLogin):
-    print("Login attempt for:", user.email)
     db_user = await db.users.find_one({"email": user.email})
-    print("DB user:", db_user)
-    if not db_user:
-        raise HTTPException(status_code=401, detail="invalid credentials")
-    try:
-        if not pass_context.verify(user.password, db_user["password"]):
-            raise HTTPException(status_code=401, detail="invalid credentials")
-    except Exception as e:
-        print("Bcrypt error:", e)
-        raise HTTPException(status_code=401, detail="invalid credentials")
-    token = jwt.encode(
-        {"email": user.email},
-        SECRET_KEY,
-        algorithm=ALGORITHM
-    )
+    if not db_user or not argon2.verify(user.password, db_user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    token = jwt.encode({"email": user.email}, SECRET_KEY, algorithm=ALGORITHM)
     return {"token": token}
