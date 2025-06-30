@@ -1,14 +1,12 @@
 from fastapi import Request, HTTPException
 from jose import jwt
 import os
-from app.database.mongodb import db
 
 SECRET_KEY = os.getenv("SECRET_KEY", "secret")
 ALGORITHM = "HS256"
 
 # ✅ Exportable function
-async def get_db():
-    return db
+# get_db is defined in app.database.mongodb, import it where needed
 
 # ✅ Exportable auth dependency
 async def get_current_user(request: Request):

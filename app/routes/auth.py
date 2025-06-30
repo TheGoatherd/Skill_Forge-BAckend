@@ -1,10 +1,9 @@
-from fastapi import APIRouter, HTTPException,Depends
-from app.dependencies.dependencies import get_db  
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import os
 from jose import jwt
 from argon2 import PasswordHasher
-from app.database.mongodb import db
+from app.database.mongodb import get_db  # FIXED: import get_db from correct location
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 class User(BaseModel):
