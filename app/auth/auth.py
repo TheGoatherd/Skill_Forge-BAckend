@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from passlib.hash import bcrypt
+from passlib.context import CryptContext
 from jose import jwt
 import os
 from app.schemas.user import UserRegister, UserLogin
@@ -9,12 +9,14 @@ router = APIRouter()
 SECRET_KEY = os.getenv("SECRET", "secret")
 ALGORITHM = "HS256"
 
+pass_context = CryptContext(schemes=["bcrypt_sha256"],deprecated=["auto"])
+
 print("auth.py loaded")
 
 @router.post("/register")
 async def register(user: UserRegister):
     print("Registering user:", user.email)
-    hashed_password = bcrypt.hash(user.password)
+    hashed_password = pass_context.hash(user.password)
     try:
         result = await db.users.insert_one({
             "name": user.name,
@@ -35,7 +37,7 @@ async def login(user: UserLogin):
     if not db_user:
         raise HTTPException(status_code=401, detail="invalid credentials")
     try:
-        if not bcrypt.verify(user.password, db_user["password"]):
+        if not pass_context.verify(user.password, db_user["password"]):
             raise HTTPException(status_code=401, detail="invalid credentials")
     except Exception as e:
         print("Bcrypt error:", e)
