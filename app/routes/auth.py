@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException,Depends
+from app.dependencies.dependcies import get_db
 from pydantic import BaseModel
 import os
 from jose import jwt
 from argon2 import PasswordHasher
 from app.database.mongodb import db
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 class User(BaseModel):
     email: str
@@ -18,7 +20,7 @@ ALGORITHM = "HS256"
 ph = PasswordHasher()
 
 @router.post("/Register")
-async def register(user: User):
+async def register(user: User, db: AsyncIOMotorDatabase = Depends(get_db)):
     if not user.email.endswith("@gmail.com"):
         raise HTTPException(status_code=400, detail="Email is not valid")
 
@@ -35,7 +37,7 @@ async def register(user: User):
     return {"message": "User registered successfully"}
 
 @router.post("/Login")
-async def login(user: User):
+async def login(user: User, db: AsyncIOMotorDatabase = Depends(get_db)):
     db_user = await db.users.find_one({"email": user.email})
     if not db_user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
