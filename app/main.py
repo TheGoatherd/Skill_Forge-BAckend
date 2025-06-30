@@ -9,10 +9,11 @@ import os
 # Load environment variables
 load_dotenv()
 
+
 from app.routes import auth, dashboard,carrer,resume_pdf # adjust based on your project structure
 from app.dependencies.dependcies import get_current_user
 
-app = FastAPI(title="Career Portal API")
+app= FastAPI(debug=True, title="Career Portal API")
 
 # Apply JWT protection to all routers except auth
 app.include_router(auth.router, prefix="/auth", tags=["authentication"])

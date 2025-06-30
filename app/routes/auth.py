@@ -47,3 +47,5 @@ async def login(user: User):
 
     token = jwt.encode({"email": user.email}, SECRET_KEY, algorithm=ALGORITHM)
     return {"message": "Login successful", "token": token}
+
+
